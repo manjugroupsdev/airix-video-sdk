@@ -1,4 +1,4 @@
-import type { AirixApiErrorBody } from './types'
+import type { AirixApiErrorBody } from './types.js'
 
 export class AirixApiError extends Error {
   readonly code?: string

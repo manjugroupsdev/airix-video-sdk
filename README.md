@@ -17,22 +17,22 @@ Until the npm scope is ready, install from this repo's release assets:
 
 ```bash
 npm install \
-  https://github.com/manjugroupsdev/airix-video-sdk/releases/download/v0.1.0/airix-video-core-0.1.0.tgz \
-  https://github.com/manjugroupsdev/airix-video-sdk/releases/download/v0.1.0/airix-video-react-0.1.0.tgz
+  https://github.com/manjugroupsdev/airix-video-sdk/releases/download/v0.1.1/airix-video-core-0.1.1.tgz \
+  https://github.com/manjugroupsdev/airix-video-sdk/releases/download/v0.1.1/airix-video-react-0.1.1.tgz
 ```
 
 For React Native:
 
 ```bash
 npm install \
-  https://github.com/manjugroupsdev/airix-video-sdk/releases/download/v0.1.0/airix-video-core-0.1.0.tgz \
-  https://github.com/manjugroupsdev/airix-video-sdk/releases/download/v0.1.0/airix-video-react-native-0.1.0.tgz
+  https://github.com/manjugroupsdev/airix-video-sdk/releases/download/v0.1.1/airix-video-core-0.1.1.tgz \
+  https://github.com/manjugroupsdev/airix-video-sdk/releases/download/v0.1.1/airix-video-react-native-0.1.1.tgz
 ```
 
 For webhook verification:
 
 ```bash
-npm install https://github.com/manjugroupsdev/airix-video-sdk/releases/download/v0.1.0/airix-video-webhooks-0.1.0.tgz
+npm install https://github.com/manjugroupsdev/airix-video-sdk/releases/download/v0.1.1/airix-video-webhooks-0.1.1.tgz
 ```
 
 ## React Usage

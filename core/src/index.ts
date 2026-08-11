@@ -1,6 +1,6 @@
-export { AirixVideoClient } from './client'
-export { AirixApiError } from './errors'
-export { AirixEventEmitter } from './events'
+export { AirixVideoClient } from './client.js'
+export { AirixApiError } from './errors.js'
+export { AirixEventEmitter } from './events.js'
 export type {
   AirixApiErrorBody,
   AirixConnectedRoom,
@@ -13,4 +13,4 @@ export type {
   AirixRoomSession,
   AirixTokenProvider,
   AirixVideoClientOptions,
-} from './types'
+} from './types.js'

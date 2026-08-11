@@ -1,6 +1,6 @@
 {
   "name": "@airix/video-core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Headless AIRIX realtime video SDK core.",
   "type": "module",
   "main": "./dist/index.js",

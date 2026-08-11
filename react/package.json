@@ -1,6 +1,6 @@
 {
   "name": "@airix/video-react",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "React hooks and components for AIRIX realtime video.",
   "type": "module",
   "main": "./dist/index.js",
@@ -19,7 +19,7 @@
     "check": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@airix/video-core": "0.1.0"
+    "@airix/video-core": "0.1.1"
   },
   "peerDependencies": {
     "@livekit/components-react": "^2.9.21",

@@ -1,6 +1,6 @@
 {
   "name": "airix-video-sdk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "AIRIX",
   "license": "UNLICENSED",
   "description": "AIRIX realtime video SDK packages for web, React, React Native, and webhooks.",

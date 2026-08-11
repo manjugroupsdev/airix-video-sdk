@@ -1,6 +1,6 @@
 {
   "name": "@airix/video-webhooks",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Webhook verification helpers for AIRIX realtime video events.",
   "type": "module",
   "main": "./dist/index.js",

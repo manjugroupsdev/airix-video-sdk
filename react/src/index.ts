@@ -1,13 +1,13 @@
-export { AirixRoom } from './AirixRoom'
-export { AirixVideoConference } from './AirixVideoConference'
-export { useAirixRoom } from './useAirixRoom'
+export { AirixRoom } from './AirixRoom.js'
+export { AirixVideoConference } from './AirixVideoConference.js'
+export { useAirixRoom } from './useAirixRoom.js'
 export type {
   AirixVideoConferenceProps,
-} from './AirixVideoConference'
+} from './AirixVideoConference.js'
 export type {
   AirixRoomProps,
-} from './AirixRoom'
+} from './AirixRoom.js'
 export type {
   AirixRoomStatus,
   UseAirixRoomOptions,
-} from './useAirixRoom'
+} from './useAirixRoom.js'

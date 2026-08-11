@@ -1,2 +1,2 @@
-export { useAirixNativeRoom } from './useAirixNativeRoom'
-export type { UseAirixNativeRoomOptions } from './useAirixNativeRoom'
+export { useAirixNativeRoom } from './useAirixNativeRoom.js'
+export type { UseAirixNativeRoomOptions } from './useAirixNativeRoom.js'

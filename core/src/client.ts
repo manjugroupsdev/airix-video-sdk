@@ -1,5 +1,5 @@
-import { AirixApiError } from './errors'
-import { AirixEventEmitter } from './events'
+import { AirixApiError } from './errors.js'
+import { AirixEventEmitter } from './events.js'
 import { ConnectionState, Room, RoomEvent } from 'livekit-client'
 import type {
   AirixConnectedRoom,
@@ -11,7 +11,7 @@ import type {
   AirixRoomSession,
   AirixTokenProvider,
   AirixVideoClientOptions,
-} from './types'
+} from './types.js'
 
 const DEFAULT_ROOM_MODE: AirixRoomMode = 'group-call'
 
