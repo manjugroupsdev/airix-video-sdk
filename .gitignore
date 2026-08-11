@@ -1,0 +1,9 @@
+node_modules/
+dist/
+*/dist/
+*.tsbuildinfo
+.DS_Store
+.vite/
+*/.vite/
+releases/*.tgz
+library/

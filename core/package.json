@@ -1,0 +1,28 @@
+{
+  "name": "@airix/video-core",
+  "version": "0.1.0",
+  "description": "Headless AIRIX realtime video SDK core.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist/"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit"
+  },
+  "peerDependencies": {
+    "livekit-client": "^2.20.0"
+  },
+  "devDependencies": {
+    "livekit-client": "2.20.0",
+    "typescript": "5.8.3"
+  }
+}
