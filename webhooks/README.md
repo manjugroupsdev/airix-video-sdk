@@ -3,7 +3,7 @@
 Verify signed AIRIX webhook payloads.
 
 ```ts
-import { verifyAirixWebhook } from "@airix/video-webhooks";
+import { verifyAirixWebhook } from "airix-video-webhooks";
 
 const event = verifyAirixWebhook({
   payload: rawBody,

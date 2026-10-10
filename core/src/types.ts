@@ -9,6 +9,8 @@ export type AirixRoomMode =
 
 export type AirixParticipantRole = 'host' | 'speaker' | 'viewer'
 
+export type AirixVideoQualityProfile = 'auto' | 'hd' | 'data-saver'
+
 export type AirixTokenProvider = () => string | Promise<string>
 
 export type AirixVideoClientOptions = {
@@ -18,7 +20,9 @@ export type AirixVideoClientOptions = {
   ) => AirixJoinToken | Promise<AirixJoinToken>
   token?: string | AirixTokenProvider
   fetch?: typeof fetch
+  requestTimeoutMs?: number
   livekit?: {
+    qualityProfile?: AirixVideoQualityProfile
     roomOptions?: RoomOptions
   }
 }
@@ -30,14 +34,34 @@ export type AirixJoinRoomInput = {
   participantId?: string
   role?: AirixParticipantRole
   metadata?: Record<string, unknown>
+  recording?: { autoStart: true }
+}
+
+export type AirixRecording = {
+  id: string
+  roomId: string
+  status: 'pending' | 'starting' | 'recording' | 'stopping' | 'processing' | 'ready' | 'failed'
+  createdAt: string
+  publicUrlExpiresAt: string | null
+  mp4Url?: string
+  mp3Url?: string
 }
 
 export type AirixJoinToken = {
+  role?: AirixParticipantRole
   token: string
   livekitUrl: string
   roomId: string
   participantId: string
   expiresAt: string
+  recording?: AirixRecording
+  settings?: {
+    mode: AirixRoomMode
+    qualityProfile: AirixVideoQualityProfile
+    cameraEnabled: boolean
+    microphoneEnabled: boolean
+    screenSharing: boolean
+  }
 }
 
 export type AirixRoomSession = AirixJoinToken & {

@@ -1,9 +1,10 @@
 import {
   AirixVideoClient,
+  AirixConnectionController,
   type AirixConnectedRoom,
   type AirixJoinRoomInput,
   type AirixVideoClientOptions,
-} from '@airix/video-core'
+} from 'airix-video-core'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 export type UseAirixRoomOptions = AirixVideoClientOptions & AirixJoinRoomInput
@@ -21,6 +22,7 @@ export const useAirixRoom = (options: UseAirixRoomOptions) => {
       new AirixVideoClient({
         apiBaseUrl: options.apiBaseUrl,
         fetch: options.fetch,
+        requestTimeoutMs: options.requestTimeoutMs,
         joinTokenProvider: options.joinTokenProvider,
         livekit: options.livekit,
         token: options.token,
@@ -28,12 +30,14 @@ export const useAirixRoom = (options: UseAirixRoomOptions) => {
     [
       options.apiBaseUrl,
       options.fetch,
+      options.requestTimeoutMs,
       options.joinTokenProvider,
       options.livekit,
       options.token,
     ],
   )
-  const roomRef = useRef<AirixConnectedRoom>()
+  const controller = useMemo(() => new AirixConnectionController(client), [client])
+  const mounted = useRef(true)
   const [room, setRoom] = useState<AirixConnectedRoom>()
   const [status, setStatus] = useState<AirixRoomStatus>('idle')
   const [error, setError] = useState<Error>()
@@ -43,44 +47,45 @@ export const useAirixRoom = (options: UseAirixRoomOptions) => {
     setStatus('connecting')
 
     try {
-      const connectedRoom = await client.join({
+      const connectedRoom = await controller.connect({
         displayName: options.displayName,
         metadata: options.metadata,
         mode: options.mode,
         participantId: options.participantId,
         role: options.role,
+        recording: options.recording,
         roomId: options.roomId,
       })
 
-      roomRef.current = connectedRoom
-      setRoom(connectedRoom)
-      setStatus('connected')
+      if (mounted.current) { setRoom(connectedRoom); setStatus('connected') }
 
       return connectedRoom
     } catch (err) {
       const nextError = err instanceof Error ? err : new Error(String(err))
-      setError(nextError)
-      setStatus('error')
+      if (mounted.current) { setError(nextError); setStatus('error') }
       throw nextError
     }
   }, [
-    client,
+    controller,
     options.displayName,
     options.metadata,
     options.mode,
     options.participantId,
     options.role,
+    options.recording,
     options.roomId,
   ])
 
   const disconnect = useCallback(() => {
-    roomRef.current?.disconnect()
-    roomRef.current = undefined
+    controller.disconnect()
     setRoom(undefined)
     setStatus('disconnected')
-  }, [])
+  }, [controller])
 
-  useEffect(() => disconnect, [disconnect])
+  useEffect(() => {
+    mounted.current = true
+    return () => { mounted.current = false; controller.disconnect() }
+  }, [controller])
 
   return {
     client,
