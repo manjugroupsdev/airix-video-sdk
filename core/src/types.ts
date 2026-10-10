@@ -19,7 +19,7 @@ export type AirixVideoClientOptions = {
     input: AirixJoinRoomInput,
   ) => AirixJoinToken | Promise<AirixJoinToken>
   token?: string | AirixTokenProvider
-  fetch?: typeof fetch
+  fetch?: (input: string | URL | Request, init?: RequestInit) => Promise<Response>
   requestTimeoutMs?: number
   livekit?: {
     qualityProfile?: AirixVideoQualityProfile

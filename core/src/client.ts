@@ -21,7 +21,7 @@ const DEFAULT_ROOM_MODE: AirixRoomMode = 'group-call'
 export class AirixVideoClient {
   private readonly apiBaseUrl: string
   private readonly events = new AirixEventEmitter<AirixRoomEventMap>()
-  private readonly fetcher: typeof fetch
+  private readonly fetcher: NonNullable<AirixVideoClientOptions['fetch']>
   private readonly joinTokenProvider?: AirixVideoClientOptions['joinTokenProvider']
   private readonly roomOptions?: ConstructorParameters<typeof Room>[0]
   private readonly qualityProfile?: AirixVideoQualityProfile

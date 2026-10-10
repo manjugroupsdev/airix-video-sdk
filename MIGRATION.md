@@ -12,7 +12,7 @@ server, not to four copied client implementations.
 ## Development
 
 Use Node 22. Run `npm ci`, `npm run build`, `npm run check`, `npm test`, and
-`npm run test:artifacts`. Vite builds ESM/CJS; TypeScript emits declarations;
+`npm run test:types`, and `npm run test:artifacts`. Vite builds ESM/CJS; TypeScript emits declarations;
 Vitest tests the public interfaces and external media failures.
 
 The consumer example expects your authenticated `POST /video/session` backend.
@@ -27,6 +27,10 @@ React Native depends on the new core connection controller and must not be
 published against the old registry core. Prepare coordinated versions, test the
 packed packages together, publish core first, then its adapters. Do not overwrite
 an existing version.
+
+Prepared versions are Core `0.1.4`, React `0.1.4`, and webhooks `0.1.2`.
+The separate React Native package will be `0.1.5`, depending on Core `0.1.4`.
+These are release preparation only, not published registry versions.
 
 CI uses the isolated server runner labelled `airix-sdk-ci`. The runner accepts
 only owner-authored pushes to `main` or `codex/*`, never fork pull requests.

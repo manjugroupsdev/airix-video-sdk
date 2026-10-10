@@ -16,7 +16,8 @@
     "check": "npm run check --workspaces --if-present",
     "pack:release": "sh ./scripts/pack-release.sh",
     "test": "vitest run",
-    "test:artifacts": "node scripts/check-artifacts.mjs"
+    "test:artifacts": "node scripts/check-artifacts.mjs",
+    "test:types": "tsc -p tsconfig.tests.json"
   },
   "devDependencies": {
     "@testing-library/react": "16.3.3",
