@@ -1,14 +1,19 @@
 name: Web SDK checks
-on: [push]
+on:
+  push:
+    branches: [main, 'codex/**']
 permissions:
   contents: read
 jobs:
   verify:
+    if: github.actor == 'manjugroupsdev'
     runs-on: [self-hosted, linux, x64, airix-sdk-ci]
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: '22'
           cache: npm
@@ -19,3 +24,5 @@ jobs:
       - run: npm run test:types
       - run: npm run test:artifacts
       - run: npm audit --omit=dev --audit-level=high
+      - run: npm ci --prefix examples/video-demo --ignore-scripts
+      - run: npm run build --prefix examples/video-demo
