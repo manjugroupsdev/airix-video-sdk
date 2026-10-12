@@ -5,11 +5,10 @@ import { readFile, writeFile, mkdir, lstat } from 'node:fs/promises'
 import { resolve, basename } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const root = fileURLToPath(new URL('../', import.meta.url))
-const packages = ['core', 'react', 'webhooks']
+const root = resolve(process.env.AIRIX_SDK_RELEASE_ROOT ?? fileURLToPath(new URL('../', import.meta.url)))
 const npm = (args, cwd = root) => execFileSync('npm', args, { cwd, encoding: 'utf8' }).trim()
 const integrity = bytes => 'sha512-' + createHash('sha512').update(bytes).digest('base64')
-const plan = JSON.parse(await readFile(new URL('../release-plan.json', import.meta.url), 'utf8'))
+const plan = JSON.parse(await readFile(resolve(root, 'release-plan.json'), 'utf8'))
 
 export async function validateRelease(directory, sha) {
   assert.match(sha, /^[a-f0-9]{40}$/, 'invalid release SHA')
@@ -31,10 +30,15 @@ async function pack(directory, sha) {
   assert.match(sha, /^[a-f0-9]{40}$/)
   await mkdir(directory, { recursive: true })
   const manifest = { sourceSha: sha, packages: [] }
-  for (const workspace of packages) {
+  const ownPackage = JSON.parse(await readFile(resolve(root, 'package.json'), 'utf8'))
+  const directories = { 'airix-video-core': 'core', 'airix-video-react': 'react', 'airix-video-webhooks': 'webhooks' }
+  for (const name of Object.keys(plan)) {
+    const workspace = ownPackage.name === name ? '.' : directories[name]
+    assert.ok(workspace, 'unknown release package')
     const metadata = JSON.parse(await readFile(resolve(root, workspace, 'package.json'), 'utf8'))
     assert.equal(metadata.version, plan[metadata.name], 'release plan must match package version')
-    const [packed] = JSON.parse(npm(['pack', '--workspace', metadata.name, '--ignore-scripts', '--json', '--pack-destination', directory]))
+    const workspaceArgs = workspace === '.' ? [] : ['--workspace', metadata.name]
+    const [packed] = JSON.parse(npm(['pack', ...workspaceArgs, '--ignore-scripts', '--json', '--pack-destination', directory]))
     manifest.packages.push({ name: packed.name, version: packed.version, filename: packed.filename, integrity: packed.integrity })
   }
   await writeFile(resolve(directory, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n')
