@@ -19,3 +19,34 @@ not_verified:
   - "Updated commit server CI and real multi-browser media tests."
   - "Registry publication and registry-only consumer test."
 next: "Review the PR and coordinate core-first publication only after approval."
+
+---
+task: "sdk-browser-example-extraction"
+gate: "ok"
+success: "Browser example builds without owning backend logic"
+evidence:
+  changed_files: ["examples/video-demo", ".github/workflows/ci.yml"]
+  checks: ["npm ci and TypeScript/Vite build passed", "npm audit: zero vulnerabilities"]
+  rollback: "Revert example extraction PR; deployed demo is unchanged"
+risks:
+  sensitive_without_escalation: false
+  over_engineering: false
+  claim_without_evidence: false
+not_verified: ["Remote SDK CI", "Browser media test", "Separate demo frontend deployment"]
+next: "Validate SDK example CI before demo routing cutover"
+
+---
+task: "approved-controlled-npm-release"
+gate: "escalate"
+success: "Approved main release publishes only checked tarballs and verifies npm integrity."
+authorization: "User approved updated SDK publication and future automatic releases."
+evidence:
+  changed_files: [release-plan.json, scripts/release.mjs, scripts/release.test.mjs, scripts/check-registry-consumer.sh, .github/workflows/ci.yml, RELEASE.md]
+  checks: ["Release regression fails before implementation and passes afterward; tampered bytes and wrong SHA rejected", "10 SDK tests, strict types, ESM/CJS/declarations, builds and checks pass", "npm audit: zero vulnerabilities; real tarballs packed and integrity verified", "actionlint, Bash syntax and git diff --check pass"]
+  rollback: "Git revert workflow changes; published versions require a corrective new version."
+risks:
+  sensitive_without_escalation: false
+  over_engineering: false
+  claim_without_evidence: false
+not_verified: ["Custom-runner release CI and npm publication", "Native-device, live media and recording flows"]
+next: "Pass release CI, merge the approved plan, verify registry publication."

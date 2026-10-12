@@ -2,6 +2,10 @@
 
 Headless and React SDK packages for AIRIX realtime video.
 
+For current npm package names, installation and controlled automatic publication,
+read [SDK Releases](RELEASE.md). The scoped names and GitHub asset examples below
+are historical installation instructions.
+
 ## Packages
 
 ```text

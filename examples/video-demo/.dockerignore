@@ -1,0 +1,9 @@
+.git
+node_modules
+dist
+.env
+*.tsbuildinfo
+npm-debug.log*
+test-results
+playwright-report
+server/*.fixture.js
