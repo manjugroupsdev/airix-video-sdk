@@ -45,18 +45,40 @@ async function pack(directory, sha) {
   await validateRelease(directory, sha)
 }
 
+export async function verifyRegistryIntegrity(readIntegrity, expected, attempts = 36, wait = () => new Promise(resolve => setTimeout(resolve, 5000))) {
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    const remote = await readIntegrity()
+    if (remote !== undefined) {
+      assert.equal(remote, expected, 'published registry integrity mismatch')
+      return
+    }
+    if (attempt + 1 < attempts) await wait()
+  }
+  throw new Error('Published version is not visible on npm; approval or registry propagation may be pending')
+}
+
+async function registryIntegrity(item) {
+  // Public version metadata avoids npm's cached pre-publication packument.
+  const response = await fetch(`https://registry.npmjs.org/${encodeURIComponent(item.name)}/${item.version}?release-check=${Date.now()}`, {
+    headers: { 'cache-control': 'no-cache' },
+    redirect: 'error',
+    signal: AbortSignal.timeout(15000),
+  })
+  if (response.status === 404) return undefined
+  assert.ok(response.ok, `npm registry read failed: ${response.status}`)
+  const metadata = await response.json()
+  assert.equal(metadata.name, item.name)
+  assert.equal(metadata.version, item.version)
+  assert.equal(typeof metadata.dist?.integrity, 'string', 'registry integrity missing')
+  return metadata.dist.integrity
+}
+
 async function publish(directory, sha) {
   const manifest = await validateRelease(directory, sha)
   npm(['whoami', '--registry', 'https://registry.npmjs.org'])
   const published = new Set()
   for (const item of manifest.packages) {
-    let existing
-    try {
-      existing = JSON.parse(npm(['view', `${item.name}@${item.version}`, 'dist.integrity', '--json', '--registry', 'https://registry.npmjs.org']))
-    } catch (error) {
-      const response = `${error.stdout ?? ''}\n${error.stderr ?? ''}`
-      if (!/E404/.test(response)) throw error
-    }
+    const existing = await registryIntegrity(item)
     if (existing) {
       assert.equal(existing, item.integrity, 'existing registry version differs from checked artifact')
       published.add(item.name)
@@ -66,8 +88,7 @@ async function publish(directory, sha) {
     if (!published.has(item.name)) {
       npm(['publish', resolve(directory, item.filename), '--ignore-scripts', '--access', 'public', '--tag', 'latest', '--registry', 'https://registry.npmjs.org'])
     }
-    const remote = JSON.parse(npm(['view', `${item.name}@${item.version}`, 'dist.integrity', '--json', '--registry', 'https://registry.npmjs.org']))
-    assert.equal(remote, item.integrity, 'published registry integrity mismatch')
+    await verifyRegistryIntegrity(() => registryIntegrity(item), item.integrity)
     console.log(`Verified ${item.name}@${item.version}: ${item.integrity}`)
   }
 }

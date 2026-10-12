@@ -42,7 +42,7 @@ jobs:
           BEFORE: ${{ github.event.before }}
         run: |
           [[ "$BEFORE" =~ ^[a-f0-9]{40}$ ]] && [[ "$BEFORE" != 0000000000000000000000000000000000000000 ]]
-          if git diff --name-only "$BEFORE" "$GITHUB_SHA" -- release-plan.json | grep -qx release-plan.json; then
+          if git diff --name-only "$BEFORE" "$GITHUB_SHA" -- release-plan.json scripts/release.mjs | grep -Eq '^(release-plan.json|scripts/release.mjs)$'; then
             echo 'publish=true' >> "$GITHUB_OUTPUT"
           fi
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

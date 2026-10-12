@@ -50,3 +50,18 @@ risks:
   claim_without_evidence: false
 not_verified: ["Custom-runner release CI and npm publication", "Native-device, live media and recording flows"]
 next: "Pass release CI, merge the approved plan, verify registry publication."
+
+---
+task: "registry-visibility-regression"
+gate: "ok"
+success: "Wait for registry visibility without accepting an integrity mismatch."
+evidence:
+  changed_files: [scripts/release.mjs, scripts/release.test.mjs]
+  checks: ["Regression fails before retry implementation and passes afterward", "Npm publish PUT 202 observed; Core 0.1.4 subsequently visible publicly"]
+  rollback: "Git revert retry change; never overwrite published versions."
+risks:
+  sensitive_without_escalation: false
+  over_engineering: false
+  claim_without_evidence: false
+not_verified: ["Remote retry regression CI", "Remaining adapter/webhook registry publication"]
+next: "Validate pinned shared publisher for native release."

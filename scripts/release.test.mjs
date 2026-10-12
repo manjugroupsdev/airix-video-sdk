@@ -3,7 +3,7 @@ import { mkdtemp, writeFile, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { test } from 'node:test'
-import { validateRelease } from './release.mjs'
+import { validateRelease, verifyRegistryIntegrity } from './release.mjs'
 
 test('release rejects a package whose bytes changed after CI', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'airix-release-'))
@@ -35,4 +35,12 @@ test('publication is gated by successful checks and never exposes npm credential
   assert.doesNotMatch(verify, /secrets\.NPM_TOKEN/)
   assert.match(publish, /node scripts\/release\.mjs publish/)
   assert.doesNotMatch(publish, /npm run build|npm ci/)
+})
+
+test('publication waits for registry visibility but rejects changed registry bytes', async () => {
+  let calls = 0
+  await verifyRegistryIntegrity(() => ++calls < 3 ? undefined : 'sha512-checked', 'sha512-checked', 3, async () => {})
+  assert.equal(calls, 3)
+  await assert.rejects(verifyRegistryIntegrity(() => 'sha512-other', 'sha512-checked', 3, async () => {}), /integrity mismatch/)
+  await assert.rejects(verifyRegistryIntegrity(() => undefined, 'sha512-checked', 2, async () => {}), /not visible/)
 })
