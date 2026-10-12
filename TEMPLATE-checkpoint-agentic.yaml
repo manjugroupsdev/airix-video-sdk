@@ -65,3 +65,18 @@ risks:
   claim_without_evidence: false
 not_verified: ["Remote retry regression CI", "Remaining adapter/webhook registry publication"]
 next: "Validate pinned shared publisher for native release."
+
+---
+task: "registry-only-consumer-recovery"
+gate: "ok"
+success: "Consumer verification retries metadata propagation only and uses no publishing credential."
+evidence:
+  changed_files: [scripts/registry-consumer.mjs, scripts/registry-consumer.test.mjs, scripts/check-registry-consumer.sh, .github/workflows/ci.yml]
+  checks: ["Regression fails before implementation; ETARGET recovery and nontransient/deadline rejection pass afterward", "All four updated versions are visible on npm; integrity checks passed in their release jobs", "Fresh unauthenticated registry-only installs and ESM/CJS imports pass for Web and Native plans"]
+  rollback: "Git revert consumer helper; published versions are unchanged."
+risks:
+  sensitive_without_escalation: false
+  over_engineering: false
+  claim_without_evidence: false
+not_verified: ["Remote consumer-recovery CI", "Native devices and live recording/media"]
+next: "Verify fresh consumers and checked release jobs."
