@@ -10,6 +10,9 @@ pushes do not publish. The publisher downloads the exact CI tarballs, checks
 their SHA and SHA-512 integrity, rejects stale main commits and never rebuilds.
 Core publishes first. Retries accept existing versions only with identical
 registry integrity. A registry-only ESM/CommonJS consumer test follows publication.
+Approved publisher fixes also resume the current plan after all checks pass.
+An accepted upload is not reported published until public registry integrity
+matches; visibility polling is bounded to three minutes per package.
 
 Store the granular publishing credential as GitHub Actions secret `NPM_TOKEN`.
 Restrict it to the release packages with a short expiry. It is injected only into
