@@ -19,3 +19,18 @@ not_verified:
   - "Updated commit server CI and real multi-browser media tests."
   - "Registry publication and registry-only consumer test."
 next: "Review the PR and coordinate core-first publication only after approval."
+
+---
+task: "sdk-browser-example-extraction"
+gate: "ok"
+success: "Browser example builds without owning backend logic"
+evidence:
+  changed_files: ["examples/video-demo", ".github/workflows/ci.yml"]
+  checks: ["npm ci and TypeScript/Vite build passed", "npm audit: zero vulnerabilities"]
+  rollback: "Revert example extraction PR; deployed demo is unchanged"
+risks:
+  sensitive_without_escalation: false
+  over_engineering: false
+  claim_without_evidence: false
+not_verified: ["Remote SDK CI", "Browser media test", "Separate demo frontend deployment"]
+next: "Validate SDK example CI before demo routing cutover"
