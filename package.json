@@ -3,18 +3,26 @@
   "version": "0.1.1",
   "author": "AIRIX",
   "license": "UNLICENSED",
-  "description": "AIRIX realtime video SDK packages for web, React, React Native, and webhooks.",
+  "description": "AIRIX Web/React SDK and server webhook helpers.",
   "private": true,
   "workspaces": [
     "./core",
     "./react",
-    "./react-native",
     "./webhooks",
     "./consumer"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "check": "npm run check --workspaces --if-present",
-    "pack:release": "sh ./scripts/pack-release.sh"
+    "pack:release": "sh ./scripts/pack-release.sh",
+    "test": "vitest run",
+    "test:artifacts": "node scripts/check-artifacts.mjs",
+    "test:types": "tsc -p tsconfig.tests.json"
+  },
+  "devDependencies": {
+    "@testing-library/react": "16.3.3",
+    "jsdom": "30.1.2",
+    "vite": "^7.3.7",
+    "vitest": "4.1.11"
   }
 }

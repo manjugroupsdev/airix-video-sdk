@@ -3,7 +3,7 @@
 React hooks and optional UI for AIRIX realtime video.
 
 ```tsx
-import { AirixRoom } from "@airix/video-react";
+import { AirixRoom } from "airix-video-react";
 
 export function Call() {
   return (

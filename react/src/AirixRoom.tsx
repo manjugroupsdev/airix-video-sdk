@@ -1,4 +1,4 @@
-import type { AirixConnectedRoom } from '@airix/video-core'
+import type { AirixConnectedRoom } from 'airix-video-core'
 import { useEffect } from 'react'
 import { useAirixRoom, type UseAirixRoomOptions } from './useAirixRoom.js'
 

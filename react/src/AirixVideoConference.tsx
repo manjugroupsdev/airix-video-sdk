@@ -1,9 +1,10 @@
 import {
   AirixVideoClient,
+  createAirixRoomOptions,
   type AirixJoinRoomInput,
   type AirixJoinToken,
   type AirixVideoClientOptions,
-} from '@airix/video-core'
+} from 'airix-video-core'
 import { LiveKitRoom, VideoConference } from '@livekit/components-react'
 import { useEffect, useMemo, useState } from 'react'
 
@@ -15,9 +16,9 @@ export type AirixVideoConferenceProps = AirixVideoClientOptions &
   }
 
 export const AirixVideoConference = ({
-  audio = true,
+  audio,
   fallback = 'Connecting...',
-  video = true,
+  video,
   ...options
 }: AirixVideoConferenceProps) => {
   const client = useMemo(
@@ -25,6 +26,7 @@ export const AirixVideoConference = ({
       new AirixVideoClient({
         apiBaseUrl: options.apiBaseUrl,
         fetch: options.fetch,
+        requestTimeoutMs: options.requestTimeoutMs,
         joinTokenProvider: options.joinTokenProvider,
         livekit: options.livekit,
         token: options.token,
@@ -32,6 +34,7 @@ export const AirixVideoConference = ({
     [
       options.apiBaseUrl,
       options.fetch,
+      options.requestTimeoutMs,
       options.joinTokenProvider,
       options.livekit,
       options.token,
@@ -42,6 +45,8 @@ export const AirixVideoConference = ({
 
   useEffect(() => {
     let isMounted = true
+    setJoinToken(undefined)
+    setError(undefined)
 
     client
       .createToken({
@@ -50,6 +55,7 @@ export const AirixVideoConference = ({
         mode: options.mode,
         participantId: options.participantId,
         role: options.role,
+        recording: options.recording,
         roomId: options.roomId,
       })
       .then((token) => {
@@ -73,6 +79,7 @@ export const AirixVideoConference = ({
     options.mode,
     options.participantId,
     options.role,
+    options.recording,
     options.roomId,
   ])
 
@@ -84,13 +91,18 @@ export const AirixVideoConference = ({
     return <>{fallback}</>
   }
 
+  const canPublish = (joinToken.role ?? options.role) !== 'viewer'
   return (
     <LiveKitRoom
-      audio={audio}
+      audio={canPublish && (audio ?? joinToken.settings?.microphoneEnabled ?? true)}
       connect
+      options={createAirixRoomOptions(
+        options.livekit?.qualityProfile ?? joinToken.settings?.qualityProfile,
+        options.livekit?.roomOptions,
+      )}
       serverUrl={joinToken.livekitUrl}
       token={joinToken.token}
-      video={video}
+      video={canPublish && (joinToken.settings?.mode ?? options.mode) !== 'audio-only' && (video ?? joinToken.settings?.cameraEnabled ?? true)}
     >
       <VideoConference />
     </LiveKitRoom>

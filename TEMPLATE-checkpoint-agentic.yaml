@@ -1,0 +1,21 @@
+task: "vite-tested-web-sdk"
+gate: "escalate"
+success: "Web SDK builds ESM/CJS and declarations and passes public-interface tests."
+evidence:
+  changed_files: [core, react, webhooks, consumer, package.json, package-lock.json, .github/workflows/ci.yml, MIGRATION.md]
+  checks:
+    - "npm run build and npm run check pass."
+    - "10 Vitest tests pass."
+    - "ESM/CJS/declaration artifact smoke passes."
+    - "npm audit reports zero vulnerabilities."
+    - "Strict test typecheck passes after portable fetch signature correction."
+    - "Isolated server CI 38084032686 passed the prior migration commit."
+  rollback: "Revert the SDK migration commit; published packages are unchanged."
+risks:
+  sensitive_without_escalation: false
+  over_engineering: false
+  claim_without_evidence: false
+not_verified:
+  - "Updated commit server CI and real multi-browser media tests."
+  - "Registry publication and registry-only consumer test."
+next: "Review the PR and coordinate core-first publication only after approval."

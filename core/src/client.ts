@@ -1,16 +1,19 @@
 import { AirixApiError } from './errors.js'
 import { AirixEventEmitter } from './events.js'
+import { createAirixRoomOptions } from './quality.js'
 import { ConnectionState, Room, RoomEvent } from 'livekit-client'
 import type {
   AirixConnectedRoom,
   AirixApiErrorBody,
   AirixJoinRoomInput,
   AirixJoinToken,
+  AirixRecording,
   AirixRoomEventMap,
   AirixRoomMode,
   AirixRoomSession,
   AirixTokenProvider,
   AirixVideoClientOptions,
+  AirixVideoQualityProfile,
 } from './types.js'
 
 const DEFAULT_ROOM_MODE: AirixRoomMode = 'group-call'
@@ -18,10 +21,13 @@ const DEFAULT_ROOM_MODE: AirixRoomMode = 'group-call'
 export class AirixVideoClient {
   private readonly apiBaseUrl: string
   private readonly events = new AirixEventEmitter<AirixRoomEventMap>()
-  private readonly fetcher: typeof fetch
+  private readonly fetcher: NonNullable<AirixVideoClientOptions['fetch']>
   private readonly joinTokenProvider?: AirixVideoClientOptions['joinTokenProvider']
   private readonly roomOptions?: ConstructorParameters<typeof Room>[0]
+  private readonly qualityProfile?: AirixVideoQualityProfile
+  private readonly roomOverrides?: ConstructorParameters<typeof Room>[0]
   private readonly token?: string | AirixTokenProvider
+  private readonly requestTimeoutMs: number
 
   constructor(options: AirixVideoClientOptions) {
     if (!options.apiBaseUrl) {
@@ -31,31 +37,46 @@ export class AirixVideoClient {
     this.apiBaseUrl = options.apiBaseUrl.replace(/\/+$/, '')
     this.fetcher = options.fetch ?? fetch
     this.joinTokenProvider = options.joinTokenProvider
-    this.roomOptions = options.livekit?.roomOptions
+    this.roomOptions = createAirixRoomOptions(
+      options.livekit?.qualityProfile,
+      options.livekit?.roomOptions,
+    )
     this.token = options.token
+    this.qualityProfile = options.livekit?.qualityProfile
+    this.roomOverrides = options.livekit?.roomOptions
+    this.requestTimeoutMs = options.requestTimeoutMs ?? 15000
+    if (!Number.isFinite(this.requestTimeoutMs) || this.requestTimeoutMs <= 0) {
+      throw new Error('requestTimeoutMs must be a positive finite number')
+    }
   }
 
   on = this.events.on.bind(this.events)
   off = this.events.off.bind(this.events)
 
   async join(input: AirixJoinRoomInput): Promise<AirixConnectedRoom> {
-    const mode = input.mode ?? DEFAULT_ROOM_MODE
-    const joinToken = await this.createJoinToken({ ...input, mode })
-    const livekitRoom = new Room({
-      adaptiveStream: true,
-      dynacast: true,
-      ...this.roomOptions,
-    })
+    const joinToken = await this.createJoinToken(input)
+    const mode = joinToken.settings?.mode ?? input.mode ?? DEFAULT_ROOM_MODE
+    const livekitRoom = new Room(joinToken.settings ? createAirixRoomOptions(this.qualityProfile ?? joinToken.settings.qualityProfile, this.roomOverrides) : this.roomOptions)
 
     this.bindRoomEvents(livekitRoom)
 
-    await livekitRoom.connect(joinToken.livekitUrl, joinToken.token)
+    try {
+      await livekitRoom.connect(joinToken.livekitUrl, joinToken.token)
+      if (joinToken.settings && (joinToken.role ?? input.role) !== 'viewer') {
+        await livekitRoom.localParticipant.setMicrophoneEnabled(joinToken.settings.microphoneEnabled)
+        await livekitRoom.localParticipant.setCameraEnabled(mode !== 'audio-only' && joinToken.settings.cameraEnabled)
+      }
+    } catch (error) {
+      livekitRoom.disconnect()
+      throw error
+    }
 
     const session = createConnectedRoom({
       livekitRoom,
       mode,
       session: joinToken,
-      onLeave: () => this.events.emit('room.left', { roomId: joinToken.roomId }),
+      onLeave: () =>
+        this.events.emit('room.left', { roomId: joinToken.roomId }),
     })
 
     this.events.emit('room.joined', session)
@@ -70,16 +91,34 @@ export class AirixVideoClient {
   async createToken(input: AirixJoinRoomInput): Promise<AirixJoinToken> {
     return this.createJoinToken({
       ...input,
-      mode: input.mode ?? DEFAULT_ROOM_MODE,
     })
   }
 
-  private async createJoinToken(input: RequiredRoomMode<AirixJoinRoomInput>) {
+  /** Call from a trusted product backend with its AIRIX API key. */
+  async startRecording(roomId: string): Promise<AirixRecording> {
+    return this.request<AirixRecording>(`/v1/rooms/${encodeURIComponent(roomId)}/recordings`, {
+      method: 'POST',
+    })
+  }
+
+  /** Call from a trusted product backend with its AIRIX API key. */
+  async stopRecording(recordingId: string): Promise<AirixRecording> {
+    return this.request<AirixRecording>(`/v1/recordings/${encodeURIComponent(recordingId)}/stop`, {
+      method: 'POST',
+    })
+  }
+
+  /** Returns MP4 and MP3 links once both outputs are ready. Links expire after 24 hours. */
+  async getRecording(recordingId: string): Promise<AirixRecording> {
+    return this.request<AirixRecording>(`/v1/recordings/${encodeURIComponent(recordingId)}`)
+  }
+
+  private async createJoinToken(input: AirixJoinRoomInput) {
     if (this.joinTokenProvider) {
       return this.joinTokenProvider(input)
     }
 
-    return this.request<AirixJoinToken>(`/v1/rooms/${input.roomId}/tokens`, {
+    return this.request<AirixJoinToken>(`/v1/rooms/${encodeURIComponent(input.roomId)}/tokens`, {
       body: JSON.stringify(input),
       method: 'POST',
     })
@@ -98,16 +137,26 @@ export class AirixVideoClient {
       headers.set('authorization', `Bearer ${token}`)
     }
 
-    const response = await this.fetcher(`${this.apiBaseUrl}${path}`, {
-      ...init,
-      headers,
-    })
-
-    if (!response.ok) {
-      throw new AirixApiError(response.status, await readErrorBody(response))
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), this.requestTimeoutMs)
+    try {
+      const response = await this.fetcher(`${this.apiBaseUrl}${path}`, {
+        ...init,
+        headers,
+        signal: controller.signal,
+      })
+      if (!response.ok) {
+        throw new AirixApiError(response.status, await readErrorBody(response))
+      }
+      return await response.json() as ResponseBody
+    } catch (error) {
+      if (controller.signal.aborted) {
+        throw new AirixApiError(0, { code: 'request_timeout', message: 'AIRIX API request timed out' })
+      }
+      throw error
+    } finally {
+      clearTimeout(timer)
     }
-
-    return response.json() as Promise<ResponseBody>
   }
 
   private async resolveToken() {
@@ -140,11 +189,9 @@ export class AirixVideoClient {
   }
 }
 
-type RequiredRoomMode<Input extends AirixJoinRoomInput> = Input & {
-  mode: AirixRoomMode
-}
-
-const readErrorBody = async (response: Response): Promise<AirixApiErrorBody> => {
+const readErrorBody = async (
+  response: Response,
+): Promise<AirixApiErrorBody> => {
   try {
     return (await response.json()) as AirixApiErrorBody
   } catch {
