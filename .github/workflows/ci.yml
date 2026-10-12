@@ -29,7 +29,7 @@ jobs:
       - run: npm test
       - run: npm run test:types
       - run: npm run test:artifacts
-      - run: node --test scripts/release.test.mjs
+      - run: node --test scripts/*.test.mjs
       - run: npm audit --omit=dev --audit-level=high
       - run: npm ci --prefix examples/video-demo --ignore-scripts
       - run: npm run build --prefix examples/video-demo
@@ -42,7 +42,7 @@ jobs:
           BEFORE: ${{ github.event.before }}
         run: |
           [[ "$BEFORE" =~ ^[a-f0-9]{40}$ ]] && [[ "$BEFORE" != 0000000000000000000000000000000000000000 ]]
-          if git diff --name-only "$BEFORE" "$GITHUB_SHA" -- release-plan.json scripts/release.mjs | grep -Eq '^(release-plan.json|scripts/release.mjs)$'; then
+          if git diff --name-only "$BEFORE" "$GITHUB_SHA" -- release-plan.json scripts/release.mjs scripts/registry-consumer.mjs | grep -Eq '^(release-plan.json|scripts/release.mjs|scripts/registry-consumer.mjs)$'; then
             echo 'publish=true' >> "$GITHUB_OUTPUT"
           fi
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
