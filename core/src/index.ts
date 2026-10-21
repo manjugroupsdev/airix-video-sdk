@@ -18,3 +18,10 @@ export type {
   AirixVideoQualityProfile,
 } from './types.js'
 export { AirixConnectionController } from './connection.js'
+export { AIRIX_ANALYSIS_TOPIC, AIRIX_TRANSCRIPT_TOPIC, subscribeAirixTranscript } from './transcripts.js'
+export type {
+  AirixCallAnalysis,
+  AirixTranscriptEvent,
+  AirixTranscriptPartial,
+  AirixTranscriptSegment,
+} from './transcripts.js'

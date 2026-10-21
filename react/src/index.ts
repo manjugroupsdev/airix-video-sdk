@@ -1,6 +1,7 @@
 export { AirixRoom } from './AirixRoom.js'
 export { AirixVideoConference } from './AirixVideoConference.js'
 export { useAirixRoom } from './useAirixRoom.js'
+export { useAirixTranscript } from './useAirixTranscript.js'
 export type {
   AirixVideoConferenceProps,
 } from './AirixVideoConference.js'
