@@ -35,7 +35,7 @@ export type AirixWebhookRoom = {
 export type AirixRecordingWebhook = {
   id: string
   roomId: string
-  status: string
+  status: 'ready'
   createdAt: string
   publicUrlExpiresAt: string | null
   mp4Url?: string
